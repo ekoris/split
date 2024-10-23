@@ -51,6 +51,12 @@
     <tbody id="orderTable">
         <!-- Rows will be dynamically added here -->
     </tbody>
+    <tfoot>
+        <tr>
+            <td colspan="5"><strong>Total Keseluruhan:</strong></td>
+            <td id="grandTotal">Rp0</td>
+        </tr>
+    </tfoot>
 </table>
 
 <br>
@@ -111,6 +117,8 @@ function calculateBill() {
         }
     }
 
+    let grandTotal = 0; // Variable to store the grand total
+
     // Calculate percentages, discount, shipping cost, and total per member
     for (let i = 1; i <= memberCount; i++) {
         const orderElem = document.getElementById(`order${i}`);
@@ -125,8 +133,14 @@ function calculateBill() {
             document.getElementById(`diskon${i}`).innerText = "Rp" + formatNumber(diskonMember.toFixed(0));
             document.getElementById(`ongkir${i}`).innerText = "Rp" + formatNumber(ongkirMember.toFixed(0));
             document.getElementById(`total${i}`).innerText = "Rp" + formatNumber(totalTagihan.toFixed(0));
+
+            // Add to grand total
+            grandTotal += totalTagihan;
         }
     }
+
+    // Update the grand total in the table footer
+    document.getElementById("grandTotal").innerText = "Rp" + formatNumber(grandTotal.toFixed(0));
 }
 
 // Function to format input field as the user types
