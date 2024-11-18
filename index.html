@@ -83,7 +83,7 @@ function addMember() {
 
     // Insert cells in the new row
     row.innerHTML = `
-        <td><input type="text" value="Member ${memberCount}" id="name${memberCount}" readonly></td>
+        <td><input type="text" value="Member ${memberCount}" id="name${memberCount}"></td>
         <td><input type="text" class="input-field" id="order${memberCount}" value="" oninput="formatInput(${memberCount})"></td>
         <td id="percent${memberCount}">0%</td>
         <td id="diskon${memberCount}">0</td>
