@@ -6,7 +6,7 @@
     <title>Split Bill Calculator</title>
     <style>
         table {
-            width: 60%;
+            width: 90%;
             margin-top: 20px;
         }
         th, td {
@@ -40,11 +40,14 @@
     <thead>
         <tr>
             <th>Member</th>
-            <th>Order (Rp)</th>
+            <th>Order (Rp) <br> (Harga per Qty)</th>
+            <th>Qty</th>
+            <th>Total Transaksi (Rp)</th>
             <th>Persentase</th>
             <th>Diskon (Rp)</th>
             <th>Ongkir (Rp)</th>
             <th>Total Tagihan (Rp)</th>
+            <th>Total per Qty (Rp)</th>
             <th>Actions</th>
         </tr>
     </thead>
@@ -53,7 +56,7 @@
     </tbody>
     <tfoot>
         <tr>
-            <td colspan="5"><strong>Total Keseluruhan:</strong></td>
+            <td colspan="8"><strong>Total Keseluruhan:</strong></td>
             <td id="grandTotal">Rp0</td>
         </tr>
     </tfoot>
@@ -85,10 +88,13 @@ function addMember() {
     row.innerHTML = `
         <td><input type="text" value="Member ${memberCount}" id="name${memberCount}"></td>
         <td><input type="text" class="input-field" id="order${memberCount}" value="" oninput="formatInput(${memberCount})"></td>
+        <td><input type="number" class="input-field" id="qty${memberCount}" value="1" min="1" oninput="calculateBill()"></td>
+        <td id="totalPerQty${memberCount}">Rp0</td>
         <td id="percent${memberCount}">0%</td>
-        <td id="diskon${memberCount}">0</td>
-        <td id="ongkir${memberCount}">0</td>
-        <td id="total${memberCount}">0</td>
+        <td id="diskon${memberCount}">Rp0</td>
+        <td id="ongkir${memberCount}">Rp0</td>
+        <td id="total${memberCount}">Rp0</td>
+        <td id="totalPerQtyValue${memberCount}">Rp0</td>
         <td><button onclick="removeMember(${memberCount})">Hapus</button></td>
     `;
 }
@@ -97,23 +103,31 @@ function addMember() {
 function removeMember(id) {
     const row = document.getElementById(`memberRow${id}`);
     row.parentNode.removeChild(row);
+    calculateBill(); // Recalculate after removing a member
 }
 
 // Function to calculate the split bill
 function calculateBill() {
-    let ongkir = parseFloat(document.getElementById("ongkir").value.replace(/\./g, ''));
-    let diskon = parseFloat(document.getElementById("diskon").value.replace(/\./g, ''));
+    let ongkir = parseFloat(document.getElementById("ongkir").value.replace(/\./g, '') || 0);
+    let diskon = parseFloat(document.getElementById("diskon").value.replace(/\./g, '') || 0);
 
     let totalOrder = 0;
-    let orders = [];
+    let totalsPerQty = [];
 
-    // Loop through each member and collect their order values
+    // Loop through each member and collect their order values and quantities
     for (let i = 1; i <= memberCount; i++) {
         const orderElem = document.getElementById(`order${i}`);
-        if (orderElem) {
-            const order = parseFloat(orderElem.value.replace(/\./g, ''));
-            orders.push(order);
-            totalOrder += order;
+        const qtyElem = document.getElementById(`qty${i}`);
+        if (orderElem && qtyElem) {
+            const order = parseFloat(orderElem.value.replace(/\./g, '') || 0);
+            const qty = parseInt(qtyElem.value || 1);
+            const totalPerQty = order * qty;
+
+            totalsPerQty.push(totalPerQty);
+            totalOrder += totalPerQty;
+
+            // Update Total Transaksi
+            document.getElementById(`totalPerQty${i}`).innerText = "Rp" + formatNumber(totalPerQty.toFixed(0));
         }
     }
 
@@ -122,17 +136,21 @@ function calculateBill() {
     // Calculate percentages, discount, shipping cost, and total per member
     for (let i = 1; i <= memberCount; i++) {
         const orderElem = document.getElementById(`order${i}`);
-        if (orderElem) {
-            let percent = orders[i-1] / totalOrder;
+        const qtyElem = document.getElementById(`qty${i}`);
+        if (orderElem && qtyElem) {
+            let percent = totalsPerQty[i - 1] / totalOrder;
             let diskonMember = diskon * percent;
             let ongkirMember = ongkir * percent;
-            let totalTagihan = orders[i-1] - diskonMember + ongkirMember;
+            let totalTagihan = totalsPerQty[i - 1] - diskonMember + ongkirMember;
+            let qty = parseInt(qtyElem.value || 1);
+            let totalPerQtyValue = totalTagihan / qty;
 
             // Update the table with calculated values
             document.getElementById(`percent${i}`).innerText = (percent * 100).toFixed(2) + "%";
             document.getElementById(`diskon${i}`).innerText = "Rp" + formatNumber(diskonMember.toFixed(0));
             document.getElementById(`ongkir${i}`).innerText = "Rp" + formatNumber(ongkirMember.toFixed(0));
             document.getElementById(`total${i}`).innerText = "Rp" + formatNumber(totalTagihan.toFixed(0));
+            document.getElementById(`totalPerQtyValue${i}`).innerText = "Rp" + formatNumber(totalPerQtyValue.toFixed(0));
 
             // Add to grand total
             grandTotal += totalTagihan;
@@ -161,6 +179,7 @@ function formatInputField(fieldId) {
     }
 }
 </script>
+    <footer>Powered By: Ekoris 2k25</footer>
 
 </body>
 </html>
