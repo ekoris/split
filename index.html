@@ -23,28 +23,27 @@
             margin-top: 10px;
         }
         .blink {
-  animation: blinker 1s step-start infinite;
-}
+            animation: blinker 1s step-start infinite;
+        }
 
-@keyframes blinker {
-  50% {
-    opacity: 0;
-  }
-}
+        @keyframes blinker {
+            50% {
+                opacity: 0;
+            }
+        }
     </style>
 </head>
 <body>
 
+<div id="exportArea">
 <h1>Split Bill Calculator</h1>
 
-<!-- Input form -->
 <label for="ongkir">Ongkir:</label>
 <input type="text" id="ongkir" value="" oninput="formatInputField('ongkir')"><br><br>
 
 <label for="diskon">Diskon:</label>
 <input type="text" id="diskon" value="" oninput="formatInputField('diskon')"><br><br>
 
-<!-- Table for entering each person's order -->
 <table border="1">
     <thead>
         <tr>
@@ -61,7 +60,6 @@
         </tr>
     </thead>
     <tbody id="orderTable">
-        <!-- Rows will be dynamically added here -->
     </tbody>
     <tfoot>
         <tr>
@@ -70,30 +68,36 @@
         </tr>
     </tfoot>
 </table>
+</div>
 
 <br>
 <button onclick="addMember()">Tambah Member</button>
 <button onclick="calculateBill()">Hitung Split Bill</button>
+<button onclick="exportToJPG()">Export ke JPG</button>
 
-<!-- JavaScript code -->
+<footer style="margin-top:50px;padding: 0 50px;background-color:red;">
+<marquee direction="down" width="100%" height="50" behavior="alternate">
+  <marquee behavior="alternate"><h4 class="blink">Powered By: Ekoris 2k25</h4></marquee>
+</marquee>
+</footer>
+
+<!-- HTML2Canvas Library -->
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
 <script>
-// Function to format number with thousand separators
+// Format number with dots
 function formatNumber(num) {
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 }
 
-// Function to dynamically add new member row
 let memberCount = 0;
 
 function addMember() {
     memberCount++;
     const table = document.getElementById("orderTable");
-
-    // Insert a new row at the end of the table
     const row = table.insertRow();
     row.setAttribute("id", `memberRow${memberCount}`);
 
-    // Insert cells in the new row
     row.innerHTML = `
         <td><input type="text" value="Member ${memberCount}" id="name${memberCount}"></td>
         <td><input type="text" class="input-field" id="order${memberCount}" value="" oninput="formatInput(${memberCount})"></td>
@@ -108,14 +112,14 @@ function addMember() {
     `;
 }
 
-// Function to remove member row
 function removeMember(id) {
     const row = document.getElementById(`memberRow${id}`);
-    row.parentNode.removeChild(row);
-    calculateBill(); // Recalculate after removing a member
+    if (row) {
+        row.parentNode.removeChild(row);
+        calculateBill();
+    }
 }
 
-// Function to calculate the split bill
 function calculateBill() {
     let ongkir = parseFloat(document.getElementById("ongkir").value.replace(/\./g, '') || 0);
     let diskon = parseFloat(document.getElementById("diskon").value.replace(/\./g, '') || 0);
@@ -123,7 +127,6 @@ function calculateBill() {
     let totalOrder = 0;
     let totalsPerQty = [];
 
-    // Loop through each member and collect their order values and quantities
     for (let i = 1; i <= memberCount; i++) {
         const orderElem = document.getElementById(`order${i}`);
         const qtyElem = document.getElementById(`qty${i}`);
@@ -135,14 +138,12 @@ function calculateBill() {
             totalsPerQty.push(totalPerQty);
             totalOrder += totalPerQty;
 
-            // Update Total Transaksi
             document.getElementById(`totalPerQty${i}`).innerText = "Rp" + formatNumber(totalPerQty.toFixed(0));
         }
     }
 
-    let grandTotal = 0; // Variable to store the grand total
+    let grandTotal = 0;
 
-    // Calculate percentages, discount, shipping cost, and total per member
     for (let i = 1; i <= memberCount; i++) {
         const orderElem = document.getElementById(`order${i}`);
         const qtyElem = document.getElementById(`qty${i}`);
@@ -154,50 +155,46 @@ function calculateBill() {
             let qty = parseInt(qtyElem.value || 1);
             let totalPerQtyValue = totalTagihan / qty;
 
-            // Update the table with calculated values
             document.getElementById(`percent${i}`).innerText = (percent * 100).toFixed(2) + "%";
             document.getElementById(`diskon${i}`).innerText = "Rp" + formatNumber(diskonMember.toFixed(0));
             document.getElementById(`ongkir${i}`).innerText = "Rp" + formatNumber(ongkirMember.toFixed(0));
             document.getElementById(`total${i}`).innerText = "Rp" + formatNumber(totalTagihan.toFixed(0));
             document.getElementById(`totalPerQtyValue${i}`).innerText = "Rp" + formatNumber(totalPerQtyValue.toFixed(0));
 
-            // Add to grand total
             grandTotal += totalTagihan;
         }
     }
 
-    // Update the grand total in the table footer
     document.getElementById("grandTotal").innerText = "Rp" + formatNumber(grandTotal.toFixed(0));
 }
 
-// Function to format input field as the user types
 function formatInput(id) {
     const inputElem = document.getElementById(`order${id}`);
-    let value = inputElem.value.replace(/\./g, '');  // Remove existing dots
+    let value = inputElem.value.replace(/\./g, '');
     if (!isNaN(value) && value.length > 0) {
-        inputElem.value = formatNumber(value);  // Add thousand separator
+        inputElem.value = formatNumber(value);
     }
 }
 
-// Function to format ongkir and diskon input fields
 function formatInputField(fieldId) {
     const inputElem = document.getElementById(fieldId);
-    let value = inputElem.value.replace(/\./g, '');  // Remove existing dots
+    let value = inputElem.value.replace(/\./g, '');
     if (!isNaN(value) && value.length > 0) {
-        inputElem.value = formatNumber(value);  // Add thousand separator
+        inputElem.value = formatNumber(value);
     }
 }
-</script>
-    
 
-    <footer style="margin-top:50px;padding-top:0 50 0 50; background-color:red;">
-    <marquee
-  direction="down"
-  width="100%"
-  height="50"
-  behavior="alternate">
-  <marquee behavior="alternate"><h4 class="blink">Powered By: Ekoris 2k25</h4>
-  </marquee></marquee></footer>
+// EXPORT TO JPG
+function exportToJPG() {
+    const element = document.getElementById('exportArea');
+    html2canvas(element, { scale: 2 }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = 'split-bill.jpg';
+        link.href = canvas.toDataURL('image/jpeg', 1.0);
+        link.click();
+    });
+}
+</script>
 
 </body>
 </html>
